@@ -39,3 +39,9 @@ TF Lite allows for different types of conversion:
 
 In options 2 to 4, __post-training quantization__ of weights and/or activations is performed. This allows to drastically reduce the model binary size and can speed up inference depending on the chosen inference hardware (CPU/GPU/TPU). Of course reducing the model size and increading the inference speed result in a loss of accuracy. A good conversion process looks for the best size/speed/accuracy tradeoff, depending on the specific application. A quantization-aware training is also possible to consider the quantization already during the training process, resulting in better accuracy (currently not supported by TF2).  
 For more informations about TF Lite refer to the [official guide](https://www.tensorflow.org/lite/guide).
+
+## 2) EdgeTPU
+[Coming soon]
+
+## 3) TensorRT
+[Coming soon]
