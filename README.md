@@ -2,9 +2,9 @@
 This repository provide simple and ready-to-use Jupyter notebooks for converting Keras (TensorFlow 2) models for Edge Computing applications.
 
 The optimization frameworks considered are:
-- [TensorFlow Lite](https://www.tensorflow.org/lite) (Google): CPU/GPU inference
-- [EdgeTPU](https://coral.ai/) (Google Coral): TPU inference
-- [TensorRT](https://developer.nvidia.com/tensorrt) (NVIDIA): CPU/GPU inference
+- [TensorFlow Lite](https://www.tensorflow.org/lite) (Google): CPU/TPU/mobile GPU inference
+- [EdgeTPU](https://coral.ai/) (Google Coral): Edge TPU (Coral) inference
+- [TensorRT](https://developer.nvidia.com/tensorrt) (Nvidia): CPU/Nvidia GPU inference
 
 ## 0) Prerequisites and installations
 First clone this repository:
@@ -22,7 +22,6 @@ Jupyter Notebook and Python3 are required:
 The following libraries are needed for the conversions:
 - [numpy](https://pypi.org/project/numpy/)
 - [Tensorflow 2](https://www.tensorflow.org/install)
-- [TensorRT](https://docs.nvidia.com/deeplearning/sdk/tensorrt-install-guide/index.html)
 - [EdgeTPU compiler](https://coral.ai/docs/edgetpu/compiler/)
 
 ## 1) Repository usage
@@ -43,11 +42,11 @@ This framework is directly integrated in Tensorflow and allows to optimize TF an
 The conversion is done with the Python API. TensorFlow Lite currently supports a [limited subset of TensorFlow operations](https://www.tensorflow.org/lite/guide/ops_compatibility). If a model has unsupported operations, it is possible to force the converter to use the orignal TF operations, resulting in a less efficient but still successfull conversion. 
 TF Lite has four different types of conversion:
 1. __No quantization__: the model is converted with some optimization operation (e.g. pruning of training-related nodes), weights and activations are stored as float32 numbers.
-2. __Float16 quantization__: reduces model size by up to half (since all weights are now half the original size) with minimal loss in accuracy. Model still executes as float32 operations. Can speed up processing with GPUs.
+2. __Float16 quantization__: reduces model size by up to half (since all weights are now half the original size) with minimal loss in accuracy. Model still executes as float32 operations. Can speed up processing with mobile GPUs.
 3. __Weight quantization__: quantizes *only the weights* from floating point to 8-bits integers, reducing the model size up to 4x and speeding up inference. During inference some operations will be executed with integer kernel, others with float kernel (*hybrid operators*).
-4. __Integer quantization__: all model values (weights and activations) are quantized to 8-bit integers. This results in a 4x reduction in model size and a 3 to 4x performance improvement on CPU performance. It needs a representative part of the dataset to quantize activations. If all the operations are supported it results in a __full integer quantization__, compatible with some hardware accelartors (e.g. Coral). Otherways the incompatible operations fall back in float32.
+4. __Integer quantization__: all model values (weights and activations) are quantized to 8-bit integers. This results in a 4x reduction in model size and a 3 to 4x performance improvement on CPU performance. It needs a representative part of the dataset to quantize activations. If all the operations are supported it results in a __full integer quantization__, compatible with some hardware accelartors (e.g. Coral Edge TPU). Otherways the incompatible operations fall back in float32.
 
-In options 2 to 4, __post-training quantization__ of weights and/or activations is performed. This allows to drastically reduce the model binary size and can speed up inference depending on the chosen inference hardware (CPU/GPU/TPU). Of course, reducing the model size and increading the inference speed result in a loss of accuracy. A good conversion process looks for the best size-speed-accuracy tradeoff, depending on the specific application. A quantization-aware training is also possible to already consider the quantization during the training process, resulting in better accuracy (currently not supported by TF2).  
+In options 2 to 4, __post-training quantization__ of weights and/or activations is performed. This allows to drastically reduce the model binary size and can speed up inference depending on the chosen inference hardware (CPU/GPU/TPU). Of course, reducing the model size and increading the inference speed result in a loss of accuracy. A good conversion process looks for the best size-speed-accuracy tradeoff, depending on the specific application. A __quantization-aware training__ is also possible to already consider the quantization during the training process, resulting in better accuracy.  
 
 For more informations about TF Lite refer to the [official guide](https://www.tensorflow.org/lite/guide).
 For inference with tflite models, [TFLite Interpreter](https://www.tensorflow.org/lite/guide/inference#load_and_run_a_model_in_python) should be used. In the future, I plan to provide minimal code for inference, as well.
@@ -63,4 +62,9 @@ Note that the runtime library should be installed on the system as follows:
 - __Dev Board__: follow the [Get Started guide](https://coral.ai/docs/dev-board/get-started/) to flash the board and you will end up with a system with all the necessary libraries installed.
 
 ## 4) TensorRT
-[Coming soon]
+TensorRT is currently directly supported by Tensorflow library in an experimental way. This makes very easy to convert models to target Nvidia GPUs wihout any need to install external libraries or dependencies. TensorRT allows to:
+
+- optimize the graph by pruning unused or negligible layers
+- fuse together convolutional layers, biases and activations for faster inference
+- aggregate together operations with sufficiently similar parameters made on the same tensors
+- quantize weights and/or activations to FP32, FP16 or INT8
